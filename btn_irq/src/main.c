@@ -9,6 +9,10 @@
 #define LED_PB2_OFF() GPIOB->BSRR |= GPIO_BSRR_BR2
 
 uint8_t ButtonState = 0;
+void Interrupt_EXTI_PA0_Init(void);
+void PINA_0_INIT(void);
+void PINB_2_INIT(void);
+
 
 void SetSysClockTo72 (void)
 {
@@ -40,17 +44,20 @@ void SetSysClockTo72 (void)
  * инициализация кнопки
  * 
  */
-void PINA_0_INIT(void) //Button PA0
+void PINA_0_INIT(void) //Button на PA0
 {
   RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
   GPIOA->CRL &= ~GPIO_CRL_MODE0_0;
   GPIOA->CRL &= ~GPIO_CRL_MODE0_1;
   GPIOA->CRL &= ~GPIO_CRL_CNF0_0;
   GPIOA->CRL |= GPIO_CRL_CNF0_1;
+  //GPIOA->BSRR = GPIO_BSRR_BS9; 
+  /**  подтяжка к питанию но если, мы подключили самосто­ятельно кнопку напрямую к выводу РА0 на плате BluePill без 
+  по­добной аппаратной подтяжки, то строку кода нужно раскомментировать.*/
 }
 
 /**
- * инициализация GPIO PB2
+ * инициализация GPIO PB2 (светодиод на плате)
  * 
  */
 void PINB_2_INIT(void)
@@ -62,6 +69,28 @@ void PINB_2_INIT(void)
   GPIOB->CRL &= ~GPIO_CRL_CNF2_1;
 }
 
+void Interrupt_EXTI_PA0_Init(void)
+{
+  EXTI->PR |= EXTI_PR_PR0;
+  EXTI->IMR |= EXTI_IMR_IM0;
+  AFIO->EXTICR[0] &= ~AFIO_EXTICR1_EXTI0_PA;
+  RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+  EXTI->FTSR |= EXTI_FTSR_TR0;
+  NVIC_EnableIRQ(EXTI0_IRQn);
+  NVIC_SetPriority(EXTI0_IRQn, 0);
+
+}
+
+void EXTI0_IRQHandler(void)
+{
+  EXTI->PR |= EXTI_PR_PR0;
+  if (ButtonState == 1)
+  {
+    LED_PB2_ON();
+    for (int i=0; i< 10000000; i++){};
+
+  } 
+}
 /**
  * Включение светодиода на плате при нажатии кнопки 
  * 
@@ -69,22 +98,16 @@ void PINB_2_INIT(void)
  */
 int main(void)
 {
-  //SetSysClockTo72();
+   SetSysClockTo72();
    PINB_2_INIT();
    PINA_0_INIT();
+   Interrupt_EXTI_PA0_Init();
+
    while(1)
    {
-     ButtonState = READ_BIT(GPIOA->IDR, GPIO_IDR_IDR0);
-     if(ButtonState == 1)
-     {
-       LED_PB2_ON();
-     }
-     else
-     {
-       LED_PB2_OFF();
-     }
+     ButtonState = ((GPIOA->IDR) & (GPIO_IDR_IDR0));
+     LED_PB2_OFF();
    }
-  
 
   return 0;
 }
