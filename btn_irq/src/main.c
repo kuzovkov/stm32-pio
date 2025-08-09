@@ -47,10 +47,10 @@ void SetSysClockTo72 (void)
 void PINA_0_INIT(void) //Button на PA0
 {
   RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
-  GPIOA->CRL &= ~GPIO_CRL_MODE0_0;
-  GPIOA->CRL &= ~GPIO_CRL_MODE0_1;
-  GPIOA->CRL &= ~GPIO_CRL_CNF0_0;
-  GPIOA->CRL |= GPIO_CRL_CNF0_1;
+  GPIOA->CRL &= ~GPIO_CRL_MODE0_0; //Bxод (значение после сброса);
+  GPIOA->CRL &= ~GPIO_CRL_MODE0_1; //Bxод (значение после сброса);
+  GPIOA->CRL &= ~GPIO_CRL_CNF0_0; //10: Input with pull-up / pull-down - вход с подтяжкой к питанию или к земле;
+  GPIOA->CRL |= GPIO_CRL_CNF0_1; //10: Input with pull-up / pull-down - вход с подтяжкой к питанию или к земле;
   //GPIOA->BSRR = GPIO_BSRR_BS9; 
   /**  подтяжка к питанию но если, мы подключили самосто­ятельно кнопку напрямую к выводу РА0 на плате BluePill без 
   по­добной аппаратной подтяжки, то строку кода нужно раскомментировать.*/
@@ -62,29 +62,29 @@ void PINA_0_INIT(void) //Button на PA0
  */
 void PINB_2_INIT(void)
 {
-  RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
-  GPIOB->CRL &= ~GPIO_CRL_MODE2_0;
-  GPIOB->CRL |= GPIO_CRL_MODE2_1;
-  GPIOB->CRL &= ~GPIO_CRL_CNF2_0;
-  GPIOB->CRL &= ~GPIO_CRL_CNF2_1;
+  RCC->APB2ENR |= RCC_APB2ENR_IOPBEN; //RCC
+  GPIOB->CRL &= ~GPIO_CRL_MODE2_0; //0: Выход, максимальная частота 2 MHz;
+  GPIOB->CRL |= GPIO_CRL_MODE2_1; //1: Выход, максимальная частота 2 MHz;
+  GPIOB->CRL &= ~GPIO_CRL_CNF2_0; //00: General purpose output push-pull — выход в режиме Push-pull;
+  GPIOB->CRL &= ~GPIO_CRL_CNF2_1; //00: General purpose output push-pull - выход в режиме Push-pull;
 }
 
 void Interrupt_EXTI_PA0_Init(void)
 {
-  EXTI->PR |= EXTI_PR_PR0;
-  EXTI->IMR |= EXTI_IMR_IM0;
-  AFIO->EXTICR[0] &= ~AFIO_EXTICR1_EXTI0_PA;
-  RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
-  EXTI->FTSR |= EXTI_FTSR_TR0;
-  NVIC_EnableIRQ(EXTI0_IRQn);
-  NVIC_SetPriority(EXTI0_IRQn, 0);
+  EXTI->PR |= EXTI_PR_PR0;//Сбрасываем флаг прерывания перед включением самого прерывания
+  EXTI->IMR |= EXTI_IMR_IM0;//Включаем прерывание 0-го канала EXTI - выставляем маску
+  AFIO->EXTICR[0] &= ~AFIO_EXTICR1_EXTI0_PA; //Нулевой канал EXTI подключен к порту РА0
+  RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;//RCC AFIO PortA
+  EXTI->FTSR |= EXTI_FTSR_TR0;//Прерывание по спаду импульса
+  NVIC_EnableIRQ(EXTI0_IRQn);//Разрешаем прерывание в контроллере прерываний
+  NVIC_SetPriority(EXTI0_IRQn, 0);//Установка приоритета прерывания
 
 }
 
 void EXTI0_IRQHandler(void)
 {
-  EXTI->PR |= EXTI_PR_PR0;
-  if (ButtonState == 1)
+  EXTI->PR |= EXTI_PR_PR0;//Сбрасываем флаг прерывания записью «1»
+  if (ButtonState == 1) //if (EXTI-> PR & EXTI_PR_PR0) - можно проверить по флагу прерывания // (EXTI-> PR & EXTI_PR_PR0) - переносим тогда сюда строку
   {
     LED_PB2_ON();
     for (int i=0; i< 10000000; i++){};
