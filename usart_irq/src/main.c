@@ -64,7 +64,7 @@ void PINC_13_INIT(void)
 }
 
 
-
+// обработчик прерывания на прием данных
 void USART1_IRQHandler (void)
 {
   if ((USART1-> SR & USART_SR_RXNE) !=0) //Условие попадания в обработчик
