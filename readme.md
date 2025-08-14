@@ -1,6 +1,8 @@
 
-### Write programm to MCU? example:
+### Write programm to MCU, example:
 ```bash
+sudo apt install stlink-tools
+
 st-flash write test2/.pio/build/genericSTM32F103C8/firmware.bin 0x8000000
 
 st-flash 1.6.0
