@@ -128,7 +128,7 @@ void DMA1_Channel5_IRQHandler(void)
   if ((DMA1-> ISR) & (1 << 18))
   {
     memcpy (&MainBuffer [Index], &ReceivedBuffer [0], RXSIZE/2);
-    DMA1-> IFCR |= (1 << 18);
+    DMA1-> IFCR |= (1 << 18); //Очистка бита прерывания
     Index = Index+ (RXSIZE/2);
     if (Index> 49) 
     {
